@@ -99,7 +99,20 @@
          const idEliminar= Number (e.target.dataset.cliente);
          
          const confirmar= confirm ('Deseas eliminar este cliente?');
-         }
-         console.log(confirmar);
+         
+        if (confirmar){
+            const transaction = DB.transaction(['crm'], 'readwrite');
+            const objectStore= transaction.objectStore('crm');
+            objectStore.delete(idEliminar);
+
+            transaction.oncomplete = function(){
+                console.log('El registro ha sido eliminado');
+                e.target.parentElement.parentElement.remove();
+            }
+            transaction.onerror= function (){
+                console.log('Hubo un error al eliminar el registro','error');
+            }
+        }
+     }
   }
 })();
