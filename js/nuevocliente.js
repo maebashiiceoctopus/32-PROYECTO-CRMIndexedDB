@@ -1,66 +1,74 @@
-(function () {
-  let DB;
+(function() {
 
-  const formulario = document.querySelector("#formulario");
 
-  document.addEventListener("DOMContentLoaded", () => {
-    //llamar metodo para conectar
+    document.addEventListener('DOMContentLoaded', () => {
+        formulario.addEventListener('submit', validarCliente);
 
-    conectarDB();
+        conectarDB();
+    });
 
-    formulario.addEventListener("submit", validarCliente);
-  });
+   
 
-  //conectarse a la bd
+    function validarCliente(e) {
+        e.preventDefault();
 
-  function conectarDB() {
-    const abrirConexion = window.indexedDB.open("crm", 1);
 
-    abrirConexion.onerror = function () {
-      console.log("Hubo un error");
-    };
+        const nombre = document.querySelector('#nombre').value;
+        const email = document.querySelector('#email').value;
+        const telefono = document.querySelector('#telefono').value;
+        const empresa = document.querySelector('#empresa').value;
 
-    abrirConexion.onsuccess = function () {
-      DB.abrirConexion.result;
-    };
-  }
-  function validarCliente(e) {
-    e.preventDefault();
-    //leer inputs
-    const nombre = document.querySelector("#nombre").value;
-    const email = document.querySelector("#email").value;
-    const telefono = document.querySelector("#telefono").value;
-    const empresa = document.querySelector("#empresa").value;
+        if(nombre === '' || email === '' || telefono === '' || empresa === '') {
+             
 
-    if (nombre === "" || email === "" || telefono === "" || empresa === "") {
-      imprimirAlerta(" Todos los campos son obligatorios", "error");
-      return;
+            return;
+        }
+
+        // añadir a la BD...
+        // crear un nuevo objeto con toda la info
+
+        const cliente = {
+            nombre, 
+            email,
+            telefono,
+            empresa
+        };
+
+        // Generar un ID único
+        cliente.id = Date.now();
+
+
+
+        crearNuevoCliente(cliente);
     }
-  }
 
-  function imprimirAlerta(mensaje, tipo) {
-    const alerta = document.querySelector(".alerta");
+    function crearNuevoCliente(cliente) {
 
-    if (!alerta) {
-      //crear alerta
-      const divAlerta = document.createElement("div");
-      divAlerta.classList.add(  "px-4", "py-3", "rounded", "max-w-lh", "mx-auto", "mt-6", "text-center","border",   "alerta" );
+        
 
-      if (tipo === "error") {
-        divAlerta.classList.add("bg-red-100", "border-red-400", "text-red-700");
-      } else {
-        divAlerta.classList.add(
-          "bg-green-100", "border-green-400","text-green-700"
-        );
-      }
+        // NUEVO: 
+        const transaction = DB.transaction(['crm'], 'readwrite');
+        const objectStore = transaction.objectStore('crm');
+        // console.log(objectStore);
+        objectStore.add(cliente);
 
-      divAlerta.textContent = mensaje;
-      //agregar al dom
-      formulario.appendChild(divAlerta);
+        transaction.oncomplete = () => {
+            console.log('Cliente Agregado');
 
-      setTimeout(() => {
-        divAlerta.remove();
-      }, 3000);
+            // Mostrar mensaje de que todo esta bien...
+            imprimirAlerta('Se agregó correctamente');
+
+            setTimeout(() => {
+                window.location.href = 'index.html';
+            }, 3000);
+        };
+
+        transaction.onerror = () => {
+            console.log('Hubo un error!');
+            imprimirAlerta('Hubo un Error', 'error');
+        };
     }
-  }
+
+    
+
 })();
